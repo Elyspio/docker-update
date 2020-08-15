@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {CustomRequest, WatchBody} from "./types";
-import {Assembler, Docker} from "../core/docker";
+import {Assembler, Docker} from "../core/docker/docker";
 import {Storage} from "../core/storage";
 
 let dockerHubAPI = require('docker-hub-api');

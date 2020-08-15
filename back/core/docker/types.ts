@@ -23,6 +23,7 @@ export type Container = {
     status: string;
     ports: Port[];
     name: string;
+    dockerComposeDirectory: string
 }
 
 export type ContainerJson = Omit<Container, "created"> & {
@@ -30,10 +31,14 @@ export type ContainerJson = Omit<Container, "created"> & {
 }
 
 
-export interface DockerPsResult {
-    containerList: ContainerLib[],
-    raw: string
-}
+
+
+
+
 
 
 export type ContainerId = Pick<Container, "containerId">
+
+
+
+

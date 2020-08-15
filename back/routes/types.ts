@@ -1,5 +1,5 @@
 import {Request} from "express";
-import {ContainerId} from "../core/types";
+import {ContainerId} from "../core/docker/types";
 
 export interface CustomRequest<T> extends Request {
     body: T

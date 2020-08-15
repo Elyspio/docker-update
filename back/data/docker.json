@@ -1,0 +1,17 @@
+{
+	"5c7dc3961063": {
+		"containerId": "5c7dc3961063",
+		"command": "\"docker-entrypoint.s…\"",
+		"created": "2 hours ago",
+		"image": "elyspio/external-server:arm64",
+		"ports": [
+			{
+				"protocol": "tcp",
+				"container": 4000,
+				"host": 4000,
+				"listen": "0.0.0.0"
+			}
+		],
+		"status": "Up 2 hours"
+	}
+}

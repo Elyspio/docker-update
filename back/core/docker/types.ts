@@ -23,7 +23,7 @@ export type Container = {
     status: string;
     ports: Port[];
     name: string;
-    dockerComposeDirectory: string
+    dockerComposeDirectory?: string
 }
 
 export type ContainerJson = Omit<Container, "created"> & {

@@ -1,28 +1,11 @@
-import {dockerCommand} from "docker-cli-js";
-import {Container, ContainerId, ContainerJson, ContainerLib, Port} from "./types";
+import {Container, ContainerId, ContainerJson} from "./types";
 
-import dayjs, {Dayjs} from "dayjs";
-import {exec} from "child_process";
-import {InspectResult} from "./types/docker-cli";
+import dayjs from "dayjs";
+import {SocketReturn} from "./types/docker-cli";
+import {run} from "../../util/run";
+import {Storage} from "../storage";
 
 export namespace Assembler {
-
-    export async function libToData(source: ContainerLib): Promise<Container> {
-
-        const {ports, created, dockerComposeDirectory} = await Docker.getExtraData({containerId: source["container id"]})
-
-        const obj: Container = {
-            containerId: source["container id"],
-            created,
-            image: source.image,
-            name: source.name,
-            ports,
-            status: source.status,
-            dockerComposeDirectory
-        }
-
-        return obj;
-    }
 
     export function dataToWeb(source: Container): ContainerJson {
         return {
@@ -35,38 +18,35 @@ export namespace Assembler {
 
 export namespace Docker {
     export async function getContainers(): Promise<Container[]> {
-        const promises = (await dockerCommand("ps")).containerList.map(Assembler.libToData)
 
-        const containers = await Promise.all(promises) as Container[];
+        const socket = process.env.DOCKER_SOCKET_PATH ?? "/var/run/docker.sock"
 
-        return containers;
+        const data: SocketReturn[] = JSON.parse(await run(`curl --unix-socket ${socket} http://localhost/containers/json`));
+
+        return data.map(container => ({
+            containerId: container.Id,
+            created: dayjs(container.Created),
+            ports: container.Ports.map(p => ({
+                listen: p.IP,
+                container: p.PrivatePort,
+                host: p.PublicPort,
+                protocol: p.Type as any
+            })),
+            status: container.Status,
+            name: container.Names[0],
+            image: container.Image,
+            dockerComposeDirectory: container.Labels["com.docker.compose.project.working_dir"]
+        }))
     }
 
-    export async function getExtraData(container: ContainerId): Promise<{ created: Dayjs, dockerComposeDirectory: string, ports: Port[] }> {
-        return new Promise((resolve, reject) => {
-            exec(`docker inspect "${container.containerId}`, (error, stdout) => {
-                if (error) reject(error);
-                else {
-                    const data: InspectResult = JSON.parse(stdout)[0];
-                    const created = dayjs(data.Created);
-                    const dockerComposeDirectory = data.Config.Labels["com.docker.compose.project.working_dir"];
-                    const ports: Port[] = [];
-                    Object.entries(data.NetworkSettings.Ports).forEach(([key, value]) => {
-                        ports.push({
-                            protocol: key.slice(key.indexOf("/") + 1) as any,
-                            host: Number.parseInt(value.HostPort),
-                            container: Number.parseInt(key.slice(key.indexOf("/"))),
-                            listen: value.HostIp
-                        })
-                    })
-                    resolve({
-                        ports,
-                        created,
-                        dockerComposeDirectory
-                    });
-                }
-            })
-        })
+    export async function updateDocker(container: ContainerId) {
+        const cache: {[key in string] : Container} = await Storage.read();
+        if(cache[container.containerId] === undefined) {
+            throw new Error(`Could not find container with id=${container.containerId} in cache`)
+        }
+        return run(`cd ${cache[container.containerId].dockerComposeDirectory} && docker-compose up -d`)
     }
+
+
 }
 

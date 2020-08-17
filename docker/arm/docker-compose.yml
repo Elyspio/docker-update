@@ -1,10 +1,14 @@
 version: "3"
 services:
-  server:
-    image: elyspio/external-server:arm64
+  app:
+    image: elyspio/docker-update:arm64
     ports:
-    - "4000:4000"
+      - "4001:4001"
     environment:
       LOG_FOLDER: /var/logs
+      SSH_REMOTE_USER: "ubuntu"
+      DOCKER_SOCKET_PATH: "/var/run/host.sock"
     volumes:
-    - /apps/external-server/logs:/var/logs
+      - /apps/docker-update/logs:/var/logs
+      - /var/run/docker.sock:/var/run/host.sock
+    container_name: "docker-updater"

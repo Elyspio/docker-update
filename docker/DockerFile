@@ -3,6 +3,12 @@ FROM node:12-alpine
 # Create app directory
 WORKDIR /app
 
+
+# Ssh management
+RUN apk add openssh-client
+COPY docker/ssh/id_rsa.pub ~/.ssh/id_rsa.pub
+COPY docker/ssh/id_rsa.pub ~/.ssh/id_rsa.pub
+
 # Front
 RUN mkdir -p /app/front
 COPY front/build ./front/build

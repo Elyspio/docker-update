@@ -5,3 +5,5 @@ logs
 *.js
 *.d.ts
 front/.bitmap
+docker/ssh/id_rsa
+docker/ssh/id_rsa.pub
